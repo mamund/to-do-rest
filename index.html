@@ -1,16 +1,21 @@
 <html>
 
   <head>
-    <title>to-do crud</title>
+    <title>to-do rest</title>
     <style>
       li {cursor:pointer;}
     </style>
   </head>
 
   <body>
-    <h1>to-do crud</h1>
+    <h1>to-do rest</h1>
+
     <ul id="list"></ul>
-    <input id="add-item" type="button" value="Add" />
+
+    <input id="add" type="button" value="Add" style="display:none;"/>
+    <input id="search" type="button" value="Search" style="display:none;"/>
+    <input id="refresh" type="button" value="Refresh"/>
+
   </body>
 
   <script type="text/javascript">
@@ -25,13 +30,26 @@
     var thisPage = function() {
 
       var g = {};
-      g.list = {};
+      g.msg = {};
       g.listUrl = '/to-do/';
-      g.completeUrl = '/to-do/complete/';
+      g.searchUrl = '';
 
       function init() {
         attachEvents();
+        refreshList();
+      }
+
+      function refreshList() {
         makeRequest(g.listUrl,'list');
+      }
+
+      function searchList() {
+        var text;
+
+        text = prompt('Enter search:');
+        if(text) {
+          makeRequest(this.href.replace('{@text}',encodeURIComponent(text)),'search');
+        }
       }
 
       function addToList() {
@@ -39,37 +57,69 @@
 
         text = prompt('Enter text:');
         if(text) {
-          makeRequest(g.listUrl,'add','text='+encodeURIComponent(text));
+          makeRequest(this.href,'add','text='+encodeURIComponent(text));
         }
+      }
+
+      function completeItem() {
+        makeRequest(this.href, 'complete', 'id='+this.id);
       }
 
       function showList() {
         var elm, li, i, x;
 
+        // fill in the list
         elm = document.getElementById('list');
         if(elm) {
           elm.innerHTML = '';
-          for(i=0,x=g.list.length;i<x;i++) {
+          for(i=0,x=g.msg.collection.length;i<x;i++) {
             li = document.createElement('li');
-            li.id = g.list[i].id;
-            li.onclick = itemClick;
+            li.id = g.msg.collection[i].id;
+            li.href = g.msg.collection[i].link.href;
+            li.onclick = completeItem;
             li.title = 'click to delete';
-            li.appendChild(document.createTextNode(g.list[i].text));
+            li.appendChild(document.createTextNode(g.msg.collection[i].text));
             elm.appendChild(li);
+          }
+        }
+
+        // see if we should show buttons
+        for(i=0,x=g.msg.links.length;i<x;i++) {
+          switch(g.msg.links[i].rel) {
+          case 'search':
+          case 'add':
+            showButton(g.msg.links[i]);
+            break;
           }
         }
       }
 
-      function itemClick() {
-        makeRequest(g.completeUrl, 'complete', 'id='+this.id);
+      function showButton(link) {
+        var elm;
+
+        elm = document.getElementById(link.rel);
+        if(elm) {
+          elm.href = link.href;
+          elm.style.display = 'inline';
+        }
       }
 
       function attachEvents() {
         var elm;
 
-        elm = document.getElementById('add-item');
+        elm = document.getElementById('add');
         if(elm) {
           elm.onclick = addToList;
+        }
+
+        elm = document.getElementById('search');
+        if(elm) {
+          elm.onclick = searchList;
+        }
+
+        elm = document.getElementById('refresh');
+        if(elm) {
+          elm.onclick = refreshList;
         }
       }
 
@@ -91,12 +141,11 @@
           if(ajax.status===200 || ajax.status===204) {
             switch(context) {
               case 'list':
-                g.list = JSON.parse(ajax.responseText);
+              case 'search':
+                g.msg = JSON.parse(ajax.responseText);
                 showList();
                 break;
               case 'add':
-                makeRequest(g.listUrl, 'list');
-                break;
               case 'complete':
                 makeRequest(g.listUrl, 'list');
                 break;

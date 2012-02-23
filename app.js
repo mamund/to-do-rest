@@ -1,4 +1,4 @@
-/* to-do crud example */
+/* to-do rest example */
 
 var http = require('http');
 var fs = require('fs');
@@ -8,12 +8,12 @@ var g = {};
 g.host = '0.0.0.0';
 g.port = (process.env.PORT ? process.env.PORT : 80);
 
-/* local data */
+/* initial data */
 g.list = [];
-g.list[0] = {id:0,text:'this is item 0'};
-g.list[1] = {id:1,text:'this is item 1'};
-g.list[2] = {id:2,text:'this is item 2'};
-g.list[3] = {id:3,text:'this is item 3'};
+g.list[0] = {link:{rel:'complete',href:'/to-do/complete/'},id:0,text:'this is some item'};
+g.list[1] = {link:{rel:'complete',href:'/to-do/complete/'},id:1,text:'this is another item'};
+g.list[2] = {link:{rel:'complete',href:'/to-do/complete/'},id:2,text:'this is one more item'};
+g.list[3] = {link:{rel:'complete',href:'/to-do/complete/'},id:3,text:'this is possibly an item'};
 
 function handler(req, res) {
 
@@ -24,23 +24,26 @@ function handler(req, res) {
   m.searchUrl = '/to-do/search';
   m.completeUrl = '/to-do/complete/';
   m.errorMessage = '<h1>{@status} - {@msg}</h1>';
-  m.textHtml = {'content-type':'text/html'};
   m.appJson  = {'content-type':'application/json'};
+  m.textHtml = {'content-type':'text/html'};
+  m.search = '';
 
   main();
 
   /* process requests */
   function main() {
     var url;
-    
+
+    // check for a search query
     if(req.url.indexOf(m.searchUrl)!==-1) {
       url = m.searchUrl;
-      m.search = req.url.substring(0,m.searchUrl.length,255);
+      m.search = req.url.substring(m.searchUrl.length,255).replace('?text=','');
     }
     else {
       url = req.url;
     }
-    
+
+    // process request
     switch(url) {
       case m.homeUrl:
         switch(req.method) {
@@ -55,7 +58,7 @@ function handler(req, res) {
       case m.listUrl:
         switch(req.method) {
           case 'GET':
-            showList();
+            processList();
             break;
           case 'POST':
             addToList();
@@ -91,6 +94,23 @@ function handler(req, res) {
     }
   }
 
+  /* search the list */
+  function searchList() {
+    var search, i, x, msg;
+
+    search = [];
+    for(i=0,x=g.list.length;i<x;i++) {
+      if(g.list[i].text.indexOf(m.search)!==-1) {
+        search.push(g.list[i]);
+      }
+    }
+    
+    msg = {links:[{rel:'add',href:'/to-do/'},{rel:'search',href:'/to-do/search?text={@text}'}],collection:search};
+    
+    res.writeHead(200, 'OK', m.appJson);
+    res.end(JSON.stringify(msg));
+  }
+
   /* add item to list */
   function addToList() {
     var body = '';
@@ -105,7 +125,14 @@ function handler(req, res) {
     });
   }
   function sendAdd() {
-    g.list.push({id:g.list.length, text:m.item.text});
+    var item;
+    
+    item = {};
+    item.link = {rel:'complete',href:'/to-do/complete/'}
+    item.id = g.list.length
+    item.text = m.item.text;
+    g.list.push(item);
+    
     res.writeHead(204, "No content");
     res.end();
   }
@@ -143,24 +170,12 @@ function handler(req, res) {
     }
   }
 
-  /* search list */
-  function searchList() {
-    var search, i, x;
-    
-    search = [];
-    for(i=0,x=g.list.length;i<x;i++) {
-      if(g.list[i].text.indexOf(m.search)!==-1) {
-        search.push(g.list[i]);
-      }
-    }
-    res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(search));    
-  }
-  
   /* show list of items */
-  function showList() {
+  function processList() {
+    var msg;
+    msg = {links:[{rel:'add',href:'/to-do/'},{rel:'search',href:'/to-do/search?text={@text}'}],collection:g.list};
     res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(g.list));
+    res.end(JSON.stringify(msg));
   }
 
   /* show error page */
