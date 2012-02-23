@@ -1,0 +1,116 @@
+<html>
+
+  <head>
+    <title>to-do crud</title>
+    <style>
+      li {cursor:pointer;}
+    </style>
+  </head>
+
+  <body>
+    <h1>to-do crud</h1>
+    <ul id="list"></ul>
+    <input id="add-item" type="button" value="Add" />
+  </body>
+
+  <script type="text/javascript">
+
+    var pg;
+
+    window.onload = function() {
+      pg = thisPage();
+      pg.init();
+    }
+
+    var thisPage = function() {
+
+      var g = {};
+      g.list = {};
+      g.listUrl = '/to-do/';
+      g.completeUrl = '/to-do/complete/';
+
+      function init() {
+        attachEvents();
+        makeRequest(g.listUrl,'list');
+      }
+
+      function addToList() {
+        var text;
+
+        text = prompt('Enter text:');
+        if(text) {
+          makeRequest(g.listUrl,'add','text='+encodeURIComponent(text));
+        }
+      }
+
+      function showList() {
+        var elm, li, i, x;
+
+        elm = document.getElementById('list');
+        if(elm) {
+          elm.innerHTML = '';
+          for(i=0,x=g.list.length;i<x;i++) {
+            li = document.createElement('li');
+            li.id = g.list[i].id;
+            li.onclick = itemClick;
+            li.title = 'click to delete';
+            li.appendChild(document.createTextNode(g.list[i].text));
+            elm.appendChild(li);
+          }
+        }
+      }
+
+      function itemClick() {
+        makeRequest(g.completeUrl, 'complete', 'id='+this.id);
+      }
+
+      function attachEvents() {
+        var elm;
+
+        elm = document.getElementById('add-item');
+        if(elm) {
+          elm.onclick = addToList;
+        }
+      }
+
+      function makeRequest(href, context, body) {
+        var ajax;
+
+        ajax=new XMLHttpRequest();
+        if(ajax) {
+
+          if(body) {
+            ajax.open('post',href,false);
+            ajax.send(body);
+          }
+          else {
+            ajax.open('get',href,false);
+            ajax.send(null);
+          }
+
+          if(ajax.status===200 || ajax.status===204) {
+            switch(context) {
+              case 'list':
+                g.list = JSON.parse(ajax.responseText);
+                showList();
+                break;
+              case 'add':
+                makeRequest(g.listUrl, 'list');
+                break;
+              case 'complete':
+                makeRequest(g.listUrl, 'list');
+                break;
+              default:
+                alert('unknown context:'+context);
+                break;
+            }
+          }
+        }
+      }
+
+      var that = {};
+      that.init = init;
+      return that;
+    }
+  </script>
+</html>
