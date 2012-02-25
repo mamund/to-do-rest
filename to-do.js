@@ -5,7 +5,7 @@ var pg;
 window.onload = function() {
   pg = thisPage();
   pg.init();
-}
+};
 
 var thisPage = function() {
 
@@ -44,7 +44,7 @@ var thisPage = function() {
   }
 
   function showList() {
-    var elm, li, i, x;
+    var coll, elm, li, i, x;
 
     // fill in the list
     elm = document.getElementById('list-data');
@@ -61,14 +61,20 @@ var thisPage = function() {
       }
     }
 
+    // hide all the buttons
+    coll = document.getElementsByClassName('button');
+    for(i=0,x=coll.length;i<x;i++) {
+      coll[i].style.display='none';
+    }
+
     // see if we should show buttons
     for(i=0,x=g.msg.links.length;i<x;i++) {
       switch(g.msg.links[i].rel) {
-      case 'search':
-      case 'add':
-      case 'list':
-        showButton(g.msg.links[i]);
-        break;
+        case 'search':
+        case 'add':
+        case 'list':
+          showButton(g.msg.links[i]);
+          break;
       }
     }
   }
@@ -117,6 +123,7 @@ var thisPage = function() {
   }
 
   function processResponse(ajax, context) {
+
     if(ajax.readyState==4 || ajax.readyState==='complete') {
       if(ajax.status===200 || ajax.status===204) {
         switch(context) {
@@ -143,4 +150,4 @@ var thisPage = function() {
   var that = {};
   that.init = init;
   return that;
-}
+};
