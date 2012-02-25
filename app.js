@@ -25,7 +25,6 @@ function handler(req, res) {
   m.scriptUrl = '/to-do.js';
   m.searchUrl = '/to-do/search';
   m.completeUrl = '/to-do/complete/';
-  m.readMeUrl = '/readme';
   m.errorMessage = '<h1>{@status} - {@msg}</h1>';
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
@@ -96,16 +95,6 @@ function handler(req, res) {
         switch(req.method) {
           case 'POST':
             completeItem();
-            break;
-          default:
-            showError(405, 'Method not allowed');
-            break;
-        }
-        break;
-      case m.readMeUrl:
-        switch(req.method) {
-          case 'GET':
-            showReadMe();
             break;
           default:
             showError(405, 'Method not allowed');
@@ -242,20 +231,6 @@ function handler(req, res) {
     }
     else {
       res.writeHead(200, "OK",m.appJS);
-      res.end(data);
-    }
-  }
-
-  /* show read me document */
-  function showReadMe() {
-    fs.readFile('README.txt', 'ascii', sendReadMe);
-  }
-  function sendReadMe(err, data) {
-    if (err) {
-      showError(500, err.message);
-    }
-    else {
-      res.writeHead(200, "OK",m.textPlain);
       res.end(data);
     }
   }
