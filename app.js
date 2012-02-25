@@ -25,10 +25,12 @@ function handler(req, res) {
   m.scriptUrl = '/to-do.js';
   m.searchUrl = '/to-do/search';
   m.completeUrl = '/to-do/complete/';
+  m.readMeUrl = '/readme';
   m.errorMessage = '<h1>{@status} - {@msg}</h1>';
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
   m.appJS = {'content-type':'application/javascript'};
+  m.textPlain = {'content-type':'text/plain'};
 
   main();
 
@@ -100,10 +102,39 @@ function handler(req, res) {
             break;
         }
         break;
+      case m.readMeUrl:
+        switch(req.method) {
+          case 'GET':
+            showReadMe();
+            break;
+          default:
+            showError(405, 'Method not allowed');
+            break;
+        }
+        break;
       default:
         showError(404, 'Page not found');
         break;
     }
+  }
+
+  /* show list of items */
+  function sendList() {
+    var msg;
+
+    msg = {};
+    msg.links =[];
+    msg.collection = g.list;
+
+    msg.links.push({rel:'add',href:'/to-do/'});
+
+    if(msg.collection.length>0) {
+      msg.links.push({rel:'list',href:'/to-do/'});
+      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
+    }
+
+    res.writeHead(200, 'OK', m.appJson);
+    res.end(JSON.stringify(msg));
   }
 
   /* search the list */
@@ -215,23 +246,18 @@ function handler(req, res) {
     }
   }
 
-  /* show list of items */
-  function sendList() {
-    var msg;
-
-    msg = {};
-    msg.links =[];
-    msg.collection = g.list;
-
-    msg.links.push({rel:'add',href:'/to-do/'});
-
-    if(msg.collection.length>0) {
-      msg.links.push({rel:'list',href:'/to-do/'});
-      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
+  /* show read me document */
+  function showReadMe() {
+    fs.readFile('README.txt', 'ascii', sendReadMe);
+  }
+  function sendReadMe(err, data) {
+    if (err) {
+      showError(500, err.message);
     }
-
-    res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(msg));
+    else {
+      res.writeHead(200, "OK",m.textPlain);
+      res.end(data);
+    }
   }
 
   /* show error page */
