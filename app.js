@@ -19,14 +19,16 @@ function handler(req, res) {
 
   var m = {};
   m.item = {};
+  m.search = '';
   m.homeUrl = '/';
   m.listUrl = '/to-do/';
+  m.scriptUrl = '/to-do.js';
   m.searchUrl = '/to-do/search';
   m.completeUrl = '/to-do/complete/';
   m.errorMessage = '<h1>{@status} - {@msg}</h1>';
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
-  m.search = '';
+  m.appJS = {'content-type':'application/javascript'};
 
   main();
 
@@ -55,10 +57,20 @@ function handler(req, res) {
             break;
         }
         break;
+      case m.scriptUrl:
+        switch(req.method) {
+          case 'GET':
+            showScript();
+            break;
+          default:
+            showError(405, 'Method not allowed');
+            break;
+        }
+        break;
       case m.listUrl:
         switch(req.method) {
           case 'GET':
-            processList();
+            sendList();
             break;
           case 'POST':
             addToList();
@@ -135,8 +147,8 @@ function handler(req, res) {
     var item;
 
     item = {};
-    item.link = {rel:'complete',href:'/to-do/complete/'}
-    item.id = g.list.length
+    item.link = {rel:'complete',href:'/to-do/complete/'};
+    item.id = g.list.length;
     item.text = m.item.text;
     g.list.push(item);
 
@@ -172,13 +184,27 @@ function handler(req, res) {
       showError(500, err.message);
     }
     else {
-      res.writeHead(200, "OK", {'content-type' : 'text/html'});
+      res.writeHead(200, "OK",m.textHtml);
+      res.end(data);
+    }
+  }
+
+  /* show script page */
+  function showScript() {
+    fs.readFile('to-do.js', 'ascii', sendScript);
+  }
+  function sendScript(err, data) {
+    if (err) {
+      showError(500, err.message);
+    }
+    else {
+      res.writeHead(200, "OK",m.appJS);
       res.end(data);
     }
   }
 
   /* show list of items */
-  function processList() {
+  function sendList() {
     var msg;
 
     msg = {
