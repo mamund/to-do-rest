@@ -104,9 +104,16 @@ function handler(req, res) {
         search.push(g.list[i]);
       }
     }
-    
-    msg = {links:[{rel:'add',href:'/to-do/'},{rel:'search',href:'/to-do/search?text={@text}'}],collection:search};
-    
+
+    msg = {
+      links:[
+        {rel:'list',href:'/to-do/'},
+        {rel:'add',href:'/to-do/'},
+        {rel:'search',href:'/to-do/search?text={@text}'}
+      ],
+      collection:search
+    };
+
     res.writeHead(200, 'OK', m.appJson);
     res.end(JSON.stringify(msg));
   }
@@ -126,13 +133,13 @@ function handler(req, res) {
   }
   function sendAdd() {
     var item;
-    
+
     item = {};
     item.link = {rel:'complete',href:'/to-do/complete/'}
     item.id = g.list.length
     item.text = m.item.text;
     g.list.push(item);
-    
+
     res.writeHead(204, "No content");
     res.end();
   }
@@ -173,7 +180,16 @@ function handler(req, res) {
   /* show list of items */
   function processList() {
     var msg;
-    msg = {links:[{rel:'add',href:'/to-do/'},{rel:'search',href:'/to-do/search?text={@text}'}],collection:g.list};
+
+    msg = {
+      links:[
+        {rel:'list',href:'/to-do/'},
+        {rel:'add',href:'/to-do/'},
+        {rel:'search',href:'/to-do/search?text={@text}'}
+      ],
+      collection:g.list
+    };
+
     res.writeHead(200, 'OK', m.appJson);
     res.end(JSON.stringify(msg));
   }
