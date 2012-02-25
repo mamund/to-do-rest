@@ -122,9 +122,9 @@ function handler(req, res) {
     msg.collection = search;
 
     msg.links.push({rel:'add',href:'/to-do/'});
+    msg.links.push({rel:'list',href:'/to-do/'});
 
     if(msg.collection.length>0) {
-      msg.links.push({rel:'list',href:'/to-do/'});
       msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
     }
 

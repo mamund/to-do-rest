@@ -1,8 +1,7 @@
 /* to-do.js */
 
-var pg;
-
 window.onload = function() {
+  var pg;
   pg = thisPage();
   pg.init();
 };
@@ -40,11 +39,11 @@ var thisPage = function() {
   }
 
   function completeItem() {
-    makeRequest(this.href, 'complete', 'id='+this.id);
+    makeRequest(this.href, 'complete', 'id='+encodeURIComponent(this.id));
   }
 
   function showList() {
-    var coll, elm, li, i, x;
+    var elm, li, i, x;
 
     // fill in the list
     elm = document.getElementById('list-data');
@@ -61,11 +60,21 @@ var thisPage = function() {
       }
     }
 
-    // hide all the buttons
+    hideButtons();
+    showButtons();
+  }
+
+  function hideButtons() {
+    var coll, i, x;
+
     coll = document.getElementsByClassName('button');
     for(i=0,x=coll.length;i<x;i++) {
       coll[i].style.display='none';
     }
+  }
+
+  function showButtons() {
+    var i,x;
 
     // see if we should show buttons
     for(i=0,x=g.msg.links.length;i<x;i++) {
@@ -73,13 +82,13 @@ var thisPage = function() {
         case 'search':
         case 'add':
         case 'list':
-          showButton(g.msg.links[i]);
+          initButton(g.msg.links[i]);
           break;
       }
     }
   }
 
-  function showButton(link) {
+  function initButton(link) {
     var elm;
 
     elm = document.getElementById(link.rel);
