@@ -16,6 +16,7 @@ var thisPage = function() {
     refreshList(g.listUrl);
   }
 
+  //support the documented affordances (list, search, add, complete)
   function refreshList(href) {
     makeRequest(href,'list');
   }
@@ -25,7 +26,7 @@ var thisPage = function() {
 
     text = prompt('Enter search:');
     if(text) {
-      makeRequest(href.replace('{@text}',encodeURIComponent(text)),'search');
+      makeRequest(href.replace('{@text}',encodeURIComponent(text)), 'search');
     }
   }
 
@@ -34,7 +35,7 @@ var thisPage = function() {
 
     text = prompt('Enter text:');
     if(text) {
-      makeRequest(href,'add','text='+encodeURIComponent(text));
+      makeRequest(href, 'add', 'text='+encodeURIComponent(text));
     }
   }
 
@@ -42,6 +43,7 @@ var thisPage = function() {
     makeRequest(this.href, 'complete', 'id='+encodeURIComponent(this.id));
   }
 
+  /* parse the returned document */
   function showList() {
     var elm, li, i, x;
 
@@ -52,14 +54,25 @@ var thisPage = function() {
       for(i=0,x=g.msg.collection.length;i<x;i++) {
         li = document.createElement('li');
         li.id = g.msg.collection[i].id;
-        li.href = g.msg.collection[i].link.href;
-        li.onclick = completeItem;
         li.title = 'click to delete';
         li.appendChild(document.createTextNode(g.msg.collection[i].text));
+
+        // see if we have an affordance here
+        try {
+          if(g.msg.collection[i].link.rel==='complete') {
+            li.href = g.msg.collection[i].link.href;
+            li.onclick = completeItem;
+          }
+        }
+        catch (ex) {}
+
         elm.appendChild(li);
       }
     }
+    showAffordances();
+  }
 
+  function showAffordances() {
     hideButtons();
     showButtons();
   }
@@ -119,7 +132,9 @@ var thisPage = function() {
 
     ajax=new XMLHttpRequest();
     if(ajax) {
+
       ajax.onreadystatechange = function(){processResponse(ajax, context);};
+
       if(body) {
         ajax.open('post',href,false);
         ajax.send(body);
@@ -151,7 +166,7 @@ var thisPage = function() {
         }
       }
       else {
-        alert(ajax.status+'\n'+ajax.statusText);
+        alert('*** ERROR: '+ajax.status+'\n'+ajax.statusText);
       }
     }
   }
