@@ -18,10 +18,11 @@ Client applications can use this Service to do the following:
  * Add a new to-do item (rel:'add')
  * Filter the list of to-do items (rel:'search')
 
-TO-DO Media Type
+TO-DO Data Elements
 The TO-DO media type represents a single to-do item as follows:
   * {id:n, text:'...'}
 
+TO-DO Affordances (processing model)
 The TO-DO media type uses link elements to handle the actions
   * {link: {rel:'list', href:'...'}}
     Uses HTTP.GET on the URI in href.
@@ -40,6 +41,7 @@ The TO-DO media type uses link elements to handle the actions
     Content-type: application/x-www-form-urlencode
     id={@id}
 
+To-DO Media Type
 A complete document has two arrays (links, collections) and looks like this:
 {
   links:[
@@ -63,5 +65,3 @@ A complete document has two arrays (links, collections) and looks like this:
 
 The links array contains the list of actions that are appropriate for this response.
 The collection array contains the list of to-do items.
-
-
