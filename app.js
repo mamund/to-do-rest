@@ -1,20 +1,21 @@
 /* tasks hypermedia example */
 
-var http = require('http');
 var fs = require('fs');
+var http = require('http');
 var querystring = require('querystring');
 
 var g = {};
 g.host = '0.0.0.0';
 g.port = (process.env.PORT ? process.env.PORT : 8484);
 
-/* initial data */
+/* internal test data */
 g.list = [];
 g.list[0] = {id:0,text:'this is some item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
 g.list[1] = {id:1,text:'this is another item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
 g.list[2] = {id:2,text:'this is one more item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
 g.list[3] = {id:3,text:'this is possibly an item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
 
+// main entry point
 function handler(req, res) {
 
   var m = {};
@@ -32,7 +33,14 @@ function handler(req, res) {
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
   m.appJS = {'content-type':'application/javascript'};
-  m.textPlain = {'content-type':'text/plain'};
+
+  // add support for CORS
+  var headers = {
+    'Content-Type' : 'application/json',
+    'Access-Control-Allow-Origin' : '*',
+    'Access-Control-Allow-Methods' : '*',
+    'Access-Control-Allow-Headers' : '*'
+  };
 
   // hypermedia controls
   m.errorMessage = '{"error":"{@status}", "message":"{@msg}"}';
@@ -131,7 +139,12 @@ function handler(req, res) {
     }
   }
 
-  /* show list of items */
+  /* 
+    show list of items
+
+    /tasks/
+ 
+  */
   function sendList() {
     var msg;
 
@@ -147,10 +160,15 @@ function handler(req, res) {
     }
 
     res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(msg));
+    res.end(JSON.stringify(msg,null,2));
   }
 
-  /* search the list */
+  /* 
+     search the list
+
+     /tasks/search?text={text} 
+
+  */
   function searchList() {
     var search, i, x, msg;
 
@@ -173,10 +191,16 @@ function handler(req, res) {
     }
 
     res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(msg));
+    res.end(JSON.stringify(msg, null, 2));
   }
 
-  /* add item to list */
+  /* 
+     add item to list
+
+     /tasks/
+     text={text} 
+
+  */
   function addToList() {
     var body = '';
 
@@ -202,7 +226,13 @@ function handler(req, res) {
     res.end();
   }
 
-  /* complete single item */
+  /* 
+     complete single item
+
+     /tasks/complete/
+     id={id} 
+
+  */
   function completeItem() {
     var body = '';
 
@@ -261,7 +291,7 @@ function handler(req, res) {
 
   /* show error page */
   function showError(status, msg) {
-    res.writeHead(status, msg, m.textHtml);
+    res.writeHead(status, msg, m.appJson);
     res.end(m.errorMessage.replace('{@status}', status).replace('{@msg}', msg));
   }
 }

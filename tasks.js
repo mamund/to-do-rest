@@ -43,7 +43,6 @@ var thisPage = function() {
           }
         }
         catch (ex) {}
-
         elm.appendChild(li);
       }
     }
