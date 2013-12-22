@@ -1,4 +1,4 @@
-/* to-do rest example */
+/* tasks hypermedia example */
 
 var http = require('http');
 var fs = require('fs');
@@ -6,30 +6,48 @@ var querystring = require('querystring');
 
 var g = {};
 g.host = '0.0.0.0';
-g.port = (process.env.PORT ? process.env.PORT : 80);
+g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* initial data */
 g.list = [];
-g.list[0] = {link:{rel:'complete',href:'/to-do/complete/'},id:0,text:'this is some item'};
-g.list[1] = {link:{rel:'complete',href:'/to-do/complete/'},id:1,text:'this is another item'};
-g.list[2] = {link:{rel:'complete',href:'/to-do/complete/'},id:2,text:'this is one more item'};
-g.list[3] = {link:{rel:'complete',href:'/to-do/complete/'},id:3,text:'this is possibly an item'};
+g.list[0] = {id:0,text:'this is some item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
+g.list[1] = {id:1,text:'this is another item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
+g.list[2] = {id:2,text:'this is one more item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
+g.list[3] = {id:3,text:'this is possibly an item',link:{rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}};
 
 function handler(req, res) {
 
   var m = {};
   m.item = {};
   m.search = '';
+  
+  // internal urls
   m.homeUrl = '/';
-  m.listUrl = '/to-do/';
-  m.scriptUrl = '/to-do.js';
-  m.searchUrl = '/to-do/search';
-  m.completeUrl = '/to-do/complete/';
-  m.errorMessage = '<h1>{@status} - {@msg}</h1>';
+  m.listUrl = '/tasks/';
+  m.scriptUrl = '/tasks.js';
+  m.searchUrl = '/tasks/search';
+  m.completeUrl = '/tasks/complete/';
+
+  // media-type identifiers
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
   m.appJS = {'content-type':'application/javascript'};
   m.textPlain = {'content-type':'text/plain'};
+
+  // hypermedia controls
+  m.errorMessage = '{"error":"{@status}", "message":"{@msg}"}';
+  m.addControl = {rel:'add',href:'/tasks/',method:'post',data:[{name:'text'}]};
+  m.searchControl = {rel:'search',href:'/tasks/search',method:'get',data:[{name:'text'}]};
+  m.listControl = {rel:'list',href:'/tasks/',method:'get'};
+  m.completeControl = {rel:'complete',href:'/tasks/complete/',method:'post',data:[{name:'id'}]}
+
+  // add support for CORS
+  var headers = {
+    'Content-Type' : 'application/json',
+    'Access-Control-Allow-Origin' : '*',
+    'Access-Control-Allow-Methods' : '*',
+    'Access-Control-Allow-Headers' : '*'
+  };
 
   main();
 
@@ -44,6 +62,12 @@ function handler(req, res) {
     }
     else {
       url = req.url;
+    }
+
+    // handle CORS OPTIONS call
+    if(req.method==='OPTIONS') {
+        var body = JSON.stringify(headers);
+        showResponse(req, res, body, 200);
     }
 
     // process request
@@ -115,11 +139,11 @@ function handler(req, res) {
     msg.links =[];
     msg.collection = g.list;
 
-    msg.links.push({rel:'add',href:'/to-do/'});
+    msg.links.push(m.addControl);
 
     if(msg.collection.length>0) {
-      msg.links.push({rel:'list',href:'/to-do/'});
-      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
+      msg.links.push(m.listControl);
+      msg.links.push(m.searchControl);
     }
 
     res.writeHead(200, 'OK', m.appJson);
@@ -141,11 +165,11 @@ function handler(req, res) {
     msg.links =[];
     msg.collection = search;
 
-    msg.links.push({rel:'add',href:'/to-do/'});
-    msg.links.push({rel:'list',href:'/to-do/'});
+    msg.links.push(m.addControl);
+    msg.links.push(m.listControl);
 
     if(msg.collection.length>0) {
-      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
+      msg.links.push(m.searchControl);
     }
 
     res.writeHead(200, 'OK', m.appJson);
@@ -169,7 +193,7 @@ function handler(req, res) {
     var item;
 
     item = {};
-    item.link = {rel:'complete',href:'/to-do/complete/'};
+    item.link = m.completeControl;
     item.id = g.list.length;
     item.text = m.item.text;
     g.list.push(item);
@@ -223,7 +247,7 @@ function handler(req, res) {
 
   /* show script file */
   function showScript() {
-    fs.readFile('to-do.js', 'ascii', sendScript);
+    fs.readFile('tasks.js', 'ascii', sendScript);
   }
   function sendScript(err, data) {
     if (err) {
@@ -242,5 +266,14 @@ function handler(req, res) {
   }
 }
 
+// return response to caller
+function showResponse(req, res, body, code) {
+    res.writeHead(code,headers);
+    res.end(body);
+}
+
 // listen for requests
 http.createServer(handler).listen(g.port, g.host);
+
+// ***** END OF FILE *****
+
