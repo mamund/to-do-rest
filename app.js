@@ -6,7 +6,7 @@ var querystring = require('querystring');
 
 var g = {};
 g.host = '0.0.0.0';
-g.port = (process.env.PORT ? process.env.PORT : 80);
+g.port = (process.env.PORT ? process.env.PORT : 8383);
 
 /* initial data */
 g.list = [];
@@ -31,6 +31,14 @@ function handler(req, res) {
   m.appJS = {'content-type':'application/javascript'};
   m.textPlain = {'content-type':'text/plain'};
 
+  // add support for CORS
+  var headers = {
+    'Content-Type' : 'application/xml',
+    'Access-Control-Allow-Origin' : '*',
+    'Access-Control-Allow-Methods' : '*',
+    'Access-Control-Allow-Headers' : '*'
+  };
+
   main();
 
   /* process requests */
@@ -44,6 +52,12 @@ function handler(req, res) {
     }
     else {
       url = req.url;
+    }
+
+    // handle CORS OPTIONS call
+    if(req.method==='OPTIONS') {
+        var body = JSON.stringify(headers);
+        showResponse(req, res, body, 200);
     }
 
     // process request
@@ -240,6 +254,12 @@ function handler(req, res) {
     res.writeHead(status, msg, m.textHtml);
     res.end(m.errorMessage.replace('{@status}', status).replace('{@msg}', msg));
   }
+}
+
+// return response to caller
+function showResponse(req, res, body, code) {
+    res.writeHead(code,headers);
+    res.end(body);
 }
 
 // listen for requests
