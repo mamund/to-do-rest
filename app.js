@@ -1,35 +1,46 @@
-/* to-do rest example */
+/* tasks CRUD example */
 
-var http = require('http');
 var fs = require('fs');
+var http = require('http');
 var querystring = require('querystring');
 
 var g = {};
 g.host = '0.0.0.0';
 g.port = (process.env.PORT ? process.env.PORT : 8383);
 
-/* initial data */
+/* internal test data */
 g.list = [];
-g.list[0] = {link:{rel:'complete',href:'/to-do/complete/'},id:0,text:'this is some item'};
-g.list[1] = {link:{rel:'complete',href:'/to-do/complete/'},id:1,text:'this is another item'};
-g.list[2] = {link:{rel:'complete',href:'/to-do/complete/'},id:2,text:'this is one more item'};
-g.list[3] = {link:{rel:'complete',href:'/to-do/complete/'},id:3,text:'this is possibly an item'};
+g.list[0] = {id:0,text:'this is some item'};
+g.list[1] = {id:1,text:'this is another item'};
+g.list[2] = {id:2,text:'this is one more item'};
+g.list[3] = {id:3,text:'this is possibly an item'};
 
+// main entry point
 function handler(req, res) {
 
   var m = {};
   m.item = {};
   m.search = '';
+
+  // internal urls
+  m.listUrl = '/tasks/';
+  m.searchUrl = '/tasks/search';
+  m.completeUrl = '/tasks/complete/';
   m.homeUrl = '/';
-  m.listUrl = '/to-do/';
-  m.scriptUrl = '/to-do.js';
-  m.searchUrl = '/to-do/search';
-  m.completeUrl = '/to-do/complete/';
-  m.errorMessage = '<h1>{@status} - {@msg}</h1>';
+  m.scriptUrl = '/tasks.js';
+
+  m.errorMessage = '{"error": {"status":"{@status}","message":"{@msg}"}}';
   m.appJson  = {'content-type':'application/json'};
   m.textHtml = {'content-type':'text/html'};
   m.appJS = {'content-type':'application/javascript'};
-  m.textPlain = {'content-type':'text/plain'};
+
+  // add support for CORS
+  var headers = {
+    'Content-Type' : 'application/json',
+    'Access-Control-Allow-Origin' : '*',
+    'Access-Control-Allow-Methods' : '*',
+    'Access-Control-Allow-Headers' : '*'
+  };
 
   // add support for CORS
   var headers = {
@@ -121,26 +132,27 @@ function handler(req, res) {
     }
   }
 
-  /* show list of items */
+  /* 
+    show list of items
+
+    /tasks/
+ 
+  */
   function sendList() {
     var msg;
 
     msg = {};
-    msg.links =[];
-    msg.collection = g.list;
-
-    msg.links.push({rel:'add',href:'/to-do/'});
-
-    if(msg.collection.length>0) {
-      msg.links.push({rel:'list',href:'/to-do/'});
-      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
-    }
-
+    msg.tasks = g.list;
     res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(msg));
+    res.end(JSON.stringify(msg,null,2));
   }
 
-  /* search the list */
+  /* 
+     search the list
+
+     /tasks/search?text={text} 
+
+  */
   function searchList() {
     var search, i, x, msg;
 
@@ -152,21 +164,19 @@ function handler(req, res) {
     }
 
     msg = {};
-    msg.links =[];
-    msg.collection = search;
-
-    msg.links.push({rel:'add',href:'/to-do/'});
-    msg.links.push({rel:'list',href:'/to-do/'});
-
-    if(msg.collection.length>0) {
-      msg.links.push({rel:'search',href:'/to-do/search?text={@text}'});
-    }
+    msg.tasks = search;
 
     res.writeHead(200, 'OK', m.appJson);
-    res.end(JSON.stringify(msg));
+    res.end(JSON.stringify(msg, null, 2));
   }
 
-  /* add item to list */
+  /* 
+     add item to list
+
+     /tasks/
+     text={text} 
+
+  */
   function addToList() {
     var body = '';
 
@@ -183,7 +193,6 @@ function handler(req, res) {
     var item;
 
     item = {};
-    item.link = {rel:'complete',href:'/to-do/complete/'};
     item.id = g.list.length;
     item.text = m.item.text;
     g.list.push(item);
@@ -192,7 +201,13 @@ function handler(req, res) {
     res.end();
   }
 
-  /* complete single item */
+  /* 
+     complete single item
+
+     /tasks/complete/
+     id={id} 
+
+  */
   function completeItem() {
     var body = '';
 
@@ -237,7 +252,7 @@ function handler(req, res) {
 
   /* show script file */
   function showScript() {
-    fs.readFile('to-do.js', 'ascii', sendScript);
+    fs.readFile('tasks.js', 'ascii', sendScript);
   }
   function sendScript(err, data) {
     if (err) {
@@ -251,7 +266,7 @@ function handler(req, res) {
 
   /* show error page */
   function showError(status, msg) {
-    res.writeHead(status, msg, m.textHtml);
+    res.writeHead(status, msg, m.appJson);
     res.end(m.errorMessage.replace('{@status}', status).replace('{@msg}', msg));
   }
 }
@@ -264,3 +279,6 @@ function showResponse(req, res, body, code) {
 
 // listen for requests
 http.createServer(handler).listen(g.port, g.host);
+
+// ***** END OF FILE ******
+
