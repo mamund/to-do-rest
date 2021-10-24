@@ -1,4 +1,4 @@
-# TO-DO REST EXAMPLE
+# TO-DO REST Example
 
 ## Problem Domain
 The following should be possible:
