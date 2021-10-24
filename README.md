@@ -30,19 +30,19 @@ The TO-DO media type uses link elements to handle the actions
   * `{link: {rel:'add', href:'...'}}`
     * Adds a new item to the list
     * Use HTTP.POST on the URI in href with the following:
-    * Content-type: `appliction/x-www-form-urlencoded`
-    * Body: `text={@text}`
+      * Content-type: `appliction/x-www-form-urlencoded`
+      * Body: `text={@text}`
 
   * `{link: {rel:'search', href:'...?text={@text}'}}`
     * Finds items that match the search criteria ("contains")
-    * Use HTTP.GET on the URI in href
-    * Include the search text in `{@text}` of the URI
+    * Use HTTP.GET on the URI in href with the following:
+      * Include the search text in `{@text}` of the URI
 
   * `{link: {rel:'complete', href:'...'}}`
     * Removes the item from the list
-    * Use HTTP.POST on the URI in the href
-    * Content-type: `application/x-www-form-urlencode`
-    * Body: `id={@id}`
+    * Use HTTP.POST on the URI in the href with the following
+      * Content-type: `application/x-www-form-urlencode`
+      * Body: `id={@id}`
 
 ## To-DO Media Type
 
