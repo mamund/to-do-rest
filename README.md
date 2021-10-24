@@ -25,21 +25,24 @@ The TO-DO media type represents a single to-do item as follows:
 ## TO-DO Affordances (processing model)
 The TO-DO media type uses link elements to handle the actions
   * `{link: {rel:'list', href:'...'}}`
-    Uses HTTP.GET on the URI in href.
+    * Uses HTTP.GET on the URI in href.
 
   * `{link: {rel:'add', href:'...'}}`
+    * Adds a new item to the list
     * Use HTTP.POST on the URI in href with the following:
-    * Content-type: appliction/x-www-form-urlencoded
-    * `text={@text}`
+    * Content-type: `appliction/x-www-form-urlencoded`
+    * Body: `text={@text}`
 
   * `{link: {rel:'search', href:'...?text={@text}'}}`
+    * Finds items that match the search criteria ("contains")
     * Use HTTP.GET on the URI in href
-    *Include the search text in `{@text}` of the URI
+    * Include the search text in `{@text}` of the URI
 
   * `{link: {rel:'complete', href:'...'}}`
+    * Removes the item from the list
     * Use HTTP.POST on the URI in the href
     * Content-type: `application/x-www-form-urlencode`
-    * `id={@id}`
+    * Body: `id={@id}`
 
 ## To-DO Media Type
 
@@ -67,6 +70,7 @@ A complete document has two arrays (links, collections) and looks like this:
 }
 ```
 
-The links array contains the list of actions that are appropriate for this response.
+The response is *always* the complete list of `links` and `collection` (e.g. all the items).
+ * The `links` array contains the list of actions that are appropriate for this response.
+ * The `collection` array contains the list of to-do items.
 
-The collection array contains the list of to-do items.
